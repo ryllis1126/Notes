@@ -738,6 +738,69 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         mEditTextList.setVisibility(View.VISIBLE);
     }
 
+
+        /**
+     * Gets the text currently visible in the active editing mode.
+     */
+    private String getCurrentEditorTextForCount() {
+
+        // Checklist mode contains multiple independent input fields.
+        if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST
+                && mEditTextList != null) {
+
+            StringBuilder text = new StringBuilder();
+            boolean hasPreviousItem = false;
+
+            for (int i = 0; i < mEditTextList.getChildCount(); i++) {
+
+                View itemView = mEditTextList.getChildAt(i);
+
+                NoteEditText edit = (NoteEditText) itemView.findViewById(
+                        R.id.et_edit_text);
+
+                String line = edit.getText().toString();
+
+                if (TextUtils.isEmpty(line)) {
+                    continue;
+                }
+
+                if (hasPreviousItem) {
+                    text.append('\n');
+                }
+
+                text.append(line);
+                hasPreviousItem = true;
+            }
+
+            return text.toString();
+        }
+
+        // Normal editing mode uses a single EditText.
+        return mNoteEditor.getText().toString();
+    }
+
+        /**
+     * Updates the character count displayed above the note editor.
+     */
+    private void updateCharacterCount() {
+
+        // Ensure that the character counter has been initialized.
+        if (mCharacterCount == null) {
+            return;
+        }
+
+        // Get the latest text from the active editing mode.
+        String text = getCurrentEditorTextForCount();
+
+        // Count Unicode code points instead of UTF-16 code units.
+        int count = text.codePointCount(0, text.length());
+
+        // Update the character count displayed on the screen.
+        mCharacterCount.setText(
+                getString(R.string.format_note_character_count, count));
+    }
+
+
     private Spannable getHighlightQueryResult(String fullText, String userQuery) {
         SpannableString spannable = new SpannableString(fullText == null ? "" : fullText);
         if (!TextUtils.isEmpty(userQuery)) {
