@@ -32,6 +32,20 @@
             android:layout_height="wrap_content">
 
             <TextView
+                android:id="@+id/btn_copy_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:minHeight="36dip"
+                android:paddingLeft="12dip"
+                android:paddingRight="12dip"
+                android:text="复制"
+                android:textColor="#533C21"
+                android:textSize="14sp"
+                android:clickable="true" />
+
+            <TextView
                 android:id="@+id/tv_modified_date"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"

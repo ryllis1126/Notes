@@ -403,6 +403,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     private void initResources() {
         mHeadViewPanel = findViewById(R.id.note_title);
+        findViewById(R.id.btn_copy_note).setOnClickListener(this);
         mNoteHeaderHolder = new HeadViewHolder();
         mNoteHeaderHolder.tvModified = (TextView) findViewById(R.id.tv_modified_date);
         mNoteHeaderHolder.ivAlertIcon = (ImageView) findViewById(R.id.iv_alert_icon);
@@ -546,6 +547,10 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     public void onClick(View v) {
         int id = v.getId();
+        if (id == R.id.btn_copy_note) {
+            copyCurrentNote();
+            return;
+        }
         if (id == R.id.btn_set_bg_color) {
             mNoteBgColorSelector.setVisibility(View.VISIBLE);
             findViewById(sBgSelectorSelectionMap.get(mWorkingNote.getBgColorId())).setVisibility(
@@ -684,6 +689,40 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         });
         d.show();
     }
+
+
+        /**
+     * Copies the current note content to the system clipboard.
+     */
+    private void copyCurrentNote() {
+
+        // Get the latest content from the current editor.
+        getWorkingText();
+        String content = mWorkingNote.getContent();
+
+        // Reject empty notes.
+        if (TextUtils.isEmpty(content) || content.trim().isEmpty()) {
+            Toast.makeText(this, "便签内容为空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Obtain the system clipboard service.
+        ClipboardManager clipboard =
+                (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+        if (clipboard == null) {
+            Toast.makeText(this, "复制失败", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Copy the note as plain text.
+        clipboard.setPrimaryClip(
+                ClipData.newPlainText("便签内容", content)
+        );
+
+        Toast.makeText(this, "复制成功", Toast.LENGTH_SHORT).show();
+    }
+
 
     /**
      * Share note to apps that support {@link Intent#ACTION_SEND} action
