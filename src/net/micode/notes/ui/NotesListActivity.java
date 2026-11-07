@@ -77,7 +77,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
-
+/**
+ * 小米便签主列表界面。
+ *
+ * 负责展示便签和文件夹，处理新建、打开、搜索、
+ * 批量删除、移动便签等用户操作。
+ *
+ * 通过 ContentResolver 与数据访问层交互，
+ * 并通过 Intent 启动便签编辑界面。
+ */
 public class NotesListActivity extends Activity implements OnClickListener, OnItemLongClickListener {
     private static final int FOLDER_NOTE_LIST_QUERY_TOKEN = 0;
 

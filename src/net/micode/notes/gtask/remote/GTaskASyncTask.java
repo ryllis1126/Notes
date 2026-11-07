@@ -17,6 +17,8 @@
 
 package net.micode.notes.gtask.remote;
 
+import android.app.NotificationChannel;
+import android.os.Build;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -64,22 +66,44 @@ public class GTaskASyncTask extends AsyncTask<Void, String, Integer> {
     }
 
     private void showNotification(int tickerId, String content) {
-        Notification notification = new Notification(R.drawable.notification, mContext
-                .getString(tickerId), System.currentTimeMillis());
-        notification.defaults = Notification.DEFAULT_LIGHTS;
-        notification.flags = Notification.FLAG_AUTO_CANCEL;
-        PendingIntent pendingIntent;
-        if (tickerId != R.string.ticker_success) {
-            pendingIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext,
-                    NotesPreferenceActivity.class), 0);
+        Intent intent;
 
+        if (tickerId != R.string.ticker_success) {
+            intent = new Intent(mContext, NotesPreferenceActivity.class);
         } else {
-            pendingIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext,
-                    NotesListActivity.class), 0);
+            intent = new Intent(mContext, NotesListActivity.class);
         }
-        notification.setLatestEventInfo(mContext, mContext.getString(R.string.app_name), content,
-                pendingIntent);
-        mNotifiManager.notify(GTASK_SYNC_NOTIFICATION_ID, notification);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                mContext, 0, intent, 0);
+
+        Notification.Builder builder = new Notification.Builder(mContext)
+                .setSmallIcon(R.drawable.notification)
+                .setTicker(mContext.getString(tickerId))
+                .setContentTitle(mContext.getString(R.string.app_name))
+                .setContentText(content)
+                .setWhen(System.currentTimeMillis())
+                .setDefaults(Notification.DEFAULT_LIGHTS)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "gtask_sync";
+
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "同步通知",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+
+            mNotifiManager.createNotificationChannel(channel);
+            builder.setChannelId(channelId);
+        }
+
+        mNotifiManager.notify(
+                GTASK_SYNC_NOTIFICATION_ID,
+                builder.build()
+        );
     }
 
     @Override

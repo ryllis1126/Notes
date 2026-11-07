@@ -70,8 +70,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import android.text.Editable;
+import android.text.TextWatcher;
 
-
+/**
+ * 便签编辑活动。
+ *
+ * 负责单条便签的加载、文本编辑、清单模式切换、
+ * 背景和字体设置、提醒设置及便签保存。
+ *
+ * 通过 WorkingNote 管理当前编辑状态，
+ * 并协调用户界面与数据模型之间的数据传递。
+ */
 public class NoteEditActivity extends Activity implements OnClickListener,
         NoteSettingChangedListener, OnTextViewChangeListener {
     private class HeadViewHolder {
@@ -129,6 +139,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     private View mFontSizeSelector;
 
     private EditText mNoteEditor;
+
+    private TextView mCharacterCount;
 
     private View mNoteEditorPanel;
 
@@ -372,6 +384,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         mNoteHeaderHolder.ibSetBgColor = (ImageView) findViewById(R.id.btn_set_bg_color);
         mNoteHeaderHolder.ibSetBgColor.setOnClickListener(this);
         mNoteEditor = (EditText) findViewById(R.id.note_edit_view);
+        mCharacterCount = (TextView) findViewById(R.id.tv_character_count);
         mNoteEditorPanel = findViewById(R.id.sv_note_edit);
         mNoteBgColorSelector = findViewById(R.id.note_bg_color_selector);
         for (int id : sBgSelectorBtnsMap.keySet()) {
@@ -395,6 +408,23 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             mFontSizeId = ResourceParser.BG_DEFAULT_FONT_SIZE;
         }
         mEditTextList = (LinearLayout) findViewById(R.id.note_edit_list);
+        // 监听普通文本编辑框，实时更新字符统计。
+        mNoteEditor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                updateCharacterCount();
+            }
+        }
+        );
+
     }
 
     @Override

@@ -35,9 +35,17 @@
                 android:id="@+id/tv_modified_date"
                 android:layout_width="0dip"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_gravity="left|center_vertical"
                 android:layout_marginRight="8dip"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearanceSecondaryItem" />
+            <TextView
+                android:id="@+id/tv_character_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="8dip"
+                android:text="@string/note_character_count_initial"
                 android:textAppearance="@style/TextAppearanceSecondaryItem" />
 
             <ImageView

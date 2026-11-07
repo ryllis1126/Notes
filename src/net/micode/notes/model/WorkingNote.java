@@ -31,7 +31,15 @@ import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.tool.ResourceParser.NoteBgResources;
 
-
+/**
+ * 便签编辑状态管理类。
+ *
+ * 负责维护当前便签的内容、文件夹、背景颜色、
+ * 提醒时间、清单模式及桌面组件关联状态。
+ *
+ * 提供便签加载、创建、修改和保存功能，
+ * 是编辑界面与底层数据模型之间的重要桥梁。
+ */
 public class WorkingNote {
     // Note for the working note
     private Note mNote;
