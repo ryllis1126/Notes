@@ -43,8 +43,23 @@
                 android:text="复制"
                 android:textColor="#533C21"
                 android:textSize="14sp"
-                android:clickable="true" />
+                android:clickable="true" 
+                android:focusable="false"/>
 
+            <TextView
+                android:id="@+id/btn_paste_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="center"
+                android:minHeight="36dip"
+                android:paddingLeft="8dip"
+                android:paddingRight="8dip"
+                android:text="粘贴"
+                android:textColor="#533C21"
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="false" />
             <TextView
                 android:id="@+id/tv_modified_date"
                 android:layout_width="0dip"

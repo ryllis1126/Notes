@@ -404,6 +404,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     private void initResources() {
         mHeadViewPanel = findViewById(R.id.note_title);
         findViewById(R.id.btn_copy_note).setOnClickListener(this);
+        findViewById(R.id.btn_paste_note).setOnClickListener(this);
         mNoteHeaderHolder = new HeadViewHolder();
         mNoteHeaderHolder.tvModified = (TextView) findViewById(R.id.tv_modified_date);
         mNoteHeaderHolder.ivAlertIcon = (ImageView) findViewById(R.id.iv_alert_icon);
@@ -551,6 +552,12 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             copyCurrentNote();
             return;
         }
+
+        if (id == R.id.btn_paste_note) {
+            pasteClipboard();
+            return;
+        }
+
         if (id == R.id.btn_set_bg_color) {
             mNoteBgColorSelector.setVisibility(View.VISIBLE);
             findViewById(sBgSelectorSelectionMap.get(mWorkingNote.getBgColorId())).setVisibility(
@@ -723,6 +730,50 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         Toast.makeText(this, "复制成功", Toast.LENGTH_SHORT).show();
     }
 
+
+        /**
+     * Pastes the clipboard content into the current note editor.
+     */
+    private void pasteClipboard() {
+
+        ClipboardManager clipboard =
+                (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+        if (clipboard == null || !clipboard.hasPrimaryClip()) {
+            Toast.makeText(this, "剪贴板为空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Normal mode uses the main editor.
+        EditText target = mNoteEditor;
+
+        // Checklist mode uses multiple independent editors.
+        if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST) {
+
+            View focused = mEditTextList.findFocus();
+
+            if (focused instanceof EditText) {
+                target = (EditText) focused;
+            } else if (mEditTextList.getChildCount() > 0) {
+                View last = mEditTextList.getChildAt(
+                        mEditTextList.getChildCount() - 1);
+
+                target = (EditText) last.findViewById(R.id.et_edit_text);
+            } else {
+                Toast.makeText(this, "没有可粘贴的位置",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        // Use Android's built-in paste operation.
+        target.requestFocus();
+
+        if (!target.onTextContextMenuItem(android.R.id.paste)) {
+            Toast.makeText(this, "粘贴失败",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 
     /**
      * Share note to apps that support {@link Intent#ACTION_SEND} action
