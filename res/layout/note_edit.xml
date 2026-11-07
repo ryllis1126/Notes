@@ -39,15 +39,6 @@
                 android:layout_marginRight="8dip"
                 android:layout_weight="1"
                 android:textAppearance="@style/TextAppearanceSecondaryItem" />
-            <TextView
-                android:id="@+id/tv_character_count"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginRight="8dip"
-                android:text="@string/note_character_count_initial"
-                android:textAppearance="@style/TextAppearanceSecondaryItem" />
-
             <ImageView
                 android:id="@+id/iv_alert_icon"
                 android:layout_width="wrap_content"
@@ -81,6 +72,16 @@
                 android:layout_width="fill_parent"
                 android:layout_height="7dip"
                 android:background="@drawable/bg_color_btn_mask" />
+            
+            <TextView
+                android:id="@+id/tv_character_count"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right|center_vertical"
+                android:paddingRight="12dip"
+                android:paddingTop="3dip"
+                android:paddingBottom="3dip"
+                android:textAppearance="@style/TextAppearanceSecondaryItem" />
 
             <ScrollView
                 android:layout_width="fill_parent"

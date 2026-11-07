@@ -24,6 +24,8 @@ import android.app.SearchManager;
 import android.appwidget.AppWidgetManager;
 import android.content.ContentUris;
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -70,8 +72,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.content.ClipboardManager;
+import android.content.ClipData;
+
 
 /**
  * 便签编辑活动。
@@ -160,6 +163,27 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     private String mUserQuery;
     private Pattern mPattern;
+
+        /**
+     * Listens for text changes in both normal editing mode and checklist rows.
+     */
+    private final TextWatcher mCharacterCountWatcher = new TextWatcher() {
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start,
+                                    int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start,
+                                int before, int count) {
+            updateCharacterCount();
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -289,6 +313,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             mNoteEditor.setText(getHighlightQueryResult(mWorkingNote.getContent(), mUserQuery));
             mNoteEditor.setSelection(mNoteEditor.getText().length());
         }
+        updateCharacterCount();
+
         for (Integer id : sBgSelectorSelectionMap.keySet()) {
             findViewById(sBgSelectorSelectionMap.get(id)).setVisibility(View.GONE);
         }
@@ -384,6 +410,10 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         mNoteHeaderHolder.ibSetBgColor = (ImageView) findViewById(R.id.btn_set_bg_color);
         mNoteHeaderHolder.ibSetBgColor.setOnClickListener(this);
         mNoteEditor = (EditText) findViewById(R.id.note_edit_view);
+        // Bind the character counter and observe normal text input.
+        mCharacterCount = (TextView) findViewById(R.id.tv_character_count);
+
+        mNoteEditor.addTextChangedListener(mCharacterCountWatcher);
         mCharacterCount = (TextView) findViewById(R.id.tv_character_count);
         mNoteEditorPanel = findViewById(R.id.sv_note_edit);
         mNoteBgColorSelector = findViewById(R.id.note_bg_color_selector);
@@ -425,6 +455,65 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         }
         );
 
+    }
+
+    /**
+     * Gets the text currently visible in the active editing mode.
+     * Checklist status markers are excluded from the character count.
+     */
+    private String getCurrentEditorTextForCount() {
+
+        if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST
+                && mEditTextList != null) {
+
+            StringBuilder text = new StringBuilder();
+            boolean hasPreviousItem = false;
+
+            // Checklist mode uses multiple EditText instances.
+            for (int i = 0; i < mEditTextList.getChildCount(); i++) {
+
+                View itemView = mEditTextList.getChildAt(i);
+
+                NoteEditText edit = (NoteEditText) itemView.findViewById(
+                        R.id.et_edit_text);
+
+                String line = edit.getText().toString();
+
+                if (TextUtils.isEmpty(line)) {
+                    continue;
+                }
+
+                if (hasPreviousItem) {
+                    text.append('\n');
+                }
+
+                text.append(line);
+                hasPreviousItem = true;
+            }
+
+            return text.toString();
+        }
+
+        return mNoteEditor.getText().toString();
+    }
+
+
+    /**
+     * Updates the character count displayed above the note editor.
+     */
+    private void updateCharacterCount() {
+
+        if (mCharacterCount == null) {
+            return;
+        }
+
+        String text = getCurrentEditorTextForCount();
+
+        // Count Unicode code points instead of UTF-16 code units.
+        int count = text.codePointCount(0, text.length());
+
+        mCharacterCount.setText(
+                getString(R.string.format_note_character_count, count));
     }
 
     @Override
@@ -563,7 +652,10 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             case R.id.menu_list_mode:
                 mWorkingNote.setCheckListMode(mWorkingNote.getCheckListMode() == 0 ?
                         TextNote.MODE_CHECK_LIST : 0);
+
+                updateCharacterCount();
                 break;
+
             case R.id.menu_share:
                 getWorkingText();
                 sendTo(this, mWorkingNote.getContent());
@@ -700,6 +792,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         edit.append(text);
         edit.requestFocus();
         edit.setSelection(length);
+        updateCharacterCount();
     }
 
     public void onEditTextEnter(int index, String text) {
@@ -719,6 +812,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             ((NoteEditText) mEditTextList.getChildAt(i).findViewById(R.id.et_edit_text))
                     .setIndex(i);
         }
+        updateCharacterCount();
     }
 
     private void switchToListMode(String text) {
@@ -739,66 +833,6 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
 
-        /**
-     * Gets the text currently visible in the active editing mode.
-     */
-    private String getCurrentEditorTextForCount() {
-
-        // Checklist mode contains multiple independent input fields.
-        if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST
-                && mEditTextList != null) {
-
-            StringBuilder text = new StringBuilder();
-            boolean hasPreviousItem = false;
-
-            for (int i = 0; i < mEditTextList.getChildCount(); i++) {
-
-                View itemView = mEditTextList.getChildAt(i);
-
-                NoteEditText edit = (NoteEditText) itemView.findViewById(
-                        R.id.et_edit_text);
-
-                String line = edit.getText().toString();
-
-                if (TextUtils.isEmpty(line)) {
-                    continue;
-                }
-
-                if (hasPreviousItem) {
-                    text.append('\n');
-                }
-
-                text.append(line);
-                hasPreviousItem = true;
-            }
-
-            return text.toString();
-        }
-
-        // Normal editing mode uses a single EditText.
-        return mNoteEditor.getText().toString();
-    }
-
-        /**
-     * Updates the character count displayed above the note editor.
-     */
-    private void updateCharacterCount() {
-
-        // Ensure that the character counter has been initialized.
-        if (mCharacterCount == null) {
-            return;
-        }
-
-        // Get the latest text from the active editing mode.
-        String text = getCurrentEditorTextForCount();
-
-        // Count Unicode code points instead of UTF-16 code units.
-        int count = text.codePointCount(0, text.length());
-
-        // Update the character count displayed on the screen.
-        mCharacterCount.setText(
-                getString(R.string.format_note_character_count, count));
-    }
 
 
     private Spannable getHighlightQueryResult(String fullText, String userQuery) {
@@ -846,6 +880,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         edit.setOnTextViewChangeListener(this);
         edit.setIndex(index);
         edit.setText(getHighlightQueryResult(item, mUserQuery));
+        edit.addTextChangedListener(mCharacterCountWatcher);
         return view;
     }
 
